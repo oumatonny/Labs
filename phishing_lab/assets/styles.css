@@ -1,0 +1,226 @@
+/*
+ * Phishing Awareness Lab — Brand Palette
+ *  #013140  dark teal   → primary background
+ *  #026281  mid  teal   → surfaces, cards, secondary
+ *  #FFFFFF  white       → all body text
+ *  #CC9F66  gold        → headings, accents, borders, primary buttons
+ */
+
+/* ── Streamlit chrome ──────────────────────────────────────────────────── */
+#MainMenu { visibility: hidden; }
+footer    { visibility: hidden; }
+header    { visibility: hidden; }
+
+/* ── Base ──────────────────────────────────────────────────────────────── */
+.stApp {
+    background-color: #013140 !important;
+}
+
+.block-container {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    max-width: 1100px;
+}
+
+/* ── Typography ────────────────────────────────────────────────────────── */
+h1, h2, h3, h4, h5 {
+    color: #CC9F66 !important;
+}
+
+p, span, li {
+    color: #FFFFFF;
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────────── */
+.stButton > button {
+    border-radius: 8px;
+    font-weight: 600;
+    padding: 0.55rem 1.3rem;
+    transition: all 0.18s ease;
+    cursor: pointer;
+    font-size: 0.92em;
+}
+
+.stButton > button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(204,159,102,0.28);
+}
+
+.stButton > button[kind="primary"] {
+    background: #CC9F66 !important;
+    color: #013140 !important;
+    border: none !important;
+    font-weight: 700 !important;
+}
+
+.stButton > button[kind="primary"]:hover {
+    background: #d4ab7a !important;
+}
+
+.stButton > button[kind="secondary"] {
+    background: #026281 !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(204,159,102,0.45) !important;
+}
+
+.stButton > button[kind="secondary"]:hover {
+    background: #027a9e !important;
+    border-color: #CC9F66 !important;
+}
+
+/* ── Download button ───────────────────────────────────────────────────── */
+.stDownloadButton > button {
+    background: #CC9F66 !important;
+    color: #013140 !important;
+    font-weight: 700 !important;
+    border-radius: 8px;
+    border: none !important;
+}
+
+.stDownloadButton > button:hover {
+    background: #d4ab7a !important;
+}
+
+/* ── Progress bar ──────────────────────────────────────────────────────── */
+.stProgress > div > div > div > div {
+    background: linear-gradient(90deg, #026281, #CC9F66) !important;
+}
+
+/* ── Metrics ───────────────────────────────────────────────────────────── */
+[data-testid="stMetric"] {
+    background: #026281;
+    border: 1px solid rgba(204,159,102,0.3);
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+}
+
+[data-testid="stMetricValue"] {
+    color: #CC9F66 !important;
+    font-weight: 700 !important;
+}
+
+[data-testid="stMetricLabel"] {
+    color: rgba(255,255,255,0.7) !important;
+}
+
+[data-testid="stMetricDelta"] {
+    color: rgba(255,255,255,0.55) !important;
+}
+
+/* ── Alert / notification boxes ────────────────────────────────────────── */
+.stAlert { border-radius: 10px; }
+
+/* info */
+[data-baseweb="notification"][kind="info"],
+div[data-testid="stInfo"] {
+    background: rgba(2,98,129,0.25) !important;
+    border-left: 4px solid #026281 !important;
+    color: #FFFFFF !important;
+}
+
+/* success */
+[data-baseweb="notification"][kind="success"],
+div[data-testid="stSuccess"] {
+    background: rgba(34,197,94,0.12) !important;
+    border-left: 4px solid #22c55e !important;
+    color: #FFFFFF !important;
+}
+
+/* error */
+[data-baseweb="notification"][kind="error"],
+div[data-testid="stError"] {
+    background: rgba(239,68,68,0.12) !important;
+    border-left: 4px solid #ef4444 !important;
+    color: #FFFFFF !important;
+}
+
+/* warning */
+[data-baseweb="notification"][kind="warning"],
+div[data-testid="stWarning"] {
+    background: rgba(204,159,102,0.14) !important;
+    border-left: 4px solid #CC9F66 !important;
+    color: #FFFFFF !important;
+}
+
+/* ── Sidebar ───────────────────────────────────────────────────────────── */
+[data-testid="stSidebar"] {
+    background-color: #013140 !important;
+    border-right: 1px solid rgba(204,159,102,0.18);
+}
+
+[data-testid="stSidebar"] h1,
+[data-testid="stSidebar"] h2,
+[data-testid="stSidebar"] h3 {
+    color: #CC9F66 !important;
+}
+
+/* ── Select / radio / toggle ────────────────────────────────────────────── */
+.stSelectbox > div > div {
+    background: #026281 !important;
+    border: 1px solid rgba(204,159,102,0.35) !important;
+    color: #FFFFFF !important;
+    border-radius: 8px;
+}
+
+.stRadio [data-testid="stWidgetLabel"],
+.stToggle [data-testid="stWidgetLabel"],
+.stSelectbox [data-testid="stWidgetLabel"],
+.stSlider [data-testid="stWidgetLabel"] {
+    color: #FFFFFF !important;
+}
+
+/* ── Expander ───────────────────────────────────────────────────────────── */
+details {
+    background: rgba(2,98,129,0.18) !important;
+    border: 1px solid rgba(204,159,102,0.22) !important;
+    border-radius: 10px !important;
+}
+
+details summary {
+    color: #CC9F66 !important;
+    font-weight: 600;
+}
+
+/* ── Text inputs ────────────────────────────────────────────────────────── */
+.stTextInput > div > div > input {
+    background: #026281 !important;
+    border: 1px solid rgba(204,159,102,0.35) !important;
+    color: #FFFFFF !important;
+    border-radius: 8px;
+}
+
+.stTextInput > div > div > input::placeholder {
+    color: rgba(255,255,255,0.45);
+}
+
+.stTextInput > div > div > input:focus {
+    border-color: #CC9F66 !important;
+    box-shadow: 0 0 0 2px rgba(204,159,102,0.2) !important;
+}
+
+/* ── Divider ────────────────────────────────────────────────────────────── */
+hr {
+    border-color: rgba(204,159,102,0.2);
+    margin: 1.5rem 0;
+}
+
+/* ── Dataframe ──────────────────────────────────────────────────────────── */
+[data-testid="stDataFrame"] {
+    border: 1px solid rgba(204,159,102,0.2);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* ── Form ───────────────────────────────────────────────────────────────── */
+[data-testid="stForm"] {
+    background: rgba(2,98,129,0.15);
+    border: 1px solid rgba(204,159,102,0.22);
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 6px; }
+::-webkit-scrollbar-track { background: #013140; }
+::-webkit-scrollbar-thumb { background: #026281; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #CC9F66; }

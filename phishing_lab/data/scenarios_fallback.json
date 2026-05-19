@@ -1,0 +1,57 @@
+[
+  {
+    "id": 1,
+    "platform": "email",
+    "role_target": "content_creator",
+    "message_content": "From: YouTube Support <youtube-security@verify-acc.com>\nSubject: Your channel will be demonetized in 24 hours\n\nDear Creator,\n\nYour channel has violated our community guidelines. Your monetization has been suspended pending review.\n\nClick here immediately to appeal and restore your account:\nhttps://youtube-appeal-verify.com/restore\n\nFailure to act within 24 hours will result in permanent demonetization.\n\nYouTube Support Team",
+    "sender_name": "YouTube Support",
+    "sender_address": "youtube-security@verify-acc.com",
+    "red_flags": ["Fake sender domain (verify-acc.com is not YouTube)", "Extreme urgency (24 hours)", "Threatening language about permanent consequences"],
+    "correct_action": "report",
+    "explanation": "YouTube never sends account warnings via email with external links. The domain 'verify-acc.com' is not YouTube. Always log in directly to YouTube Studio to check account status."
+  },
+  {
+    "id": 2,
+    "platform": "whatsapp",
+    "role_target": "any",
+    "message_content": "M-PESA ALERT: Your M-PESA account has been suspended due to unusual activity detected on your account.\n\nTo restore access immediately, verify your details here:\nhttps://mpesa-verify.co.ke/restore\n\nThis link expires in 1 hour.\n\nSafaricom M-PESA Team",
+    "sender_name": "M-PESA",
+    "sender_address": "+254700000000",
+    "red_flags": ["Unsolicited link in WhatsApp message", "Fake domain (real M-PESA uses safaricom.com)", "Artificial urgency with 1-hour deadline"],
+    "correct_action": "ignore",
+    "explanation": "M-PESA never sends WhatsApp links asking you to verify your account. Always check your M-PESA status by dialing *234# or using the MySafaricom app directly."
+  },
+  {
+    "id": 3,
+    "platform": "instagram",
+    "role_target": "content_creator",
+    "message_content": "Congratulations! Your account has been selected for the Instagram Verified Creator Program.\n\nClaim your blue verification badge now:\nhttps://instagram-verified-free.com/claim\n\nThis offer expires in 48 hours. Only 500 spots remaining!\n\nInstagram Verification Team",
+    "sender_name": "Instagram Verification Team",
+    "sender_address": "@instagram_support_2024",
+    "red_flags": ["Instagram never offers verification via DM", "Fake URL (instagram-verified-free.com)", "False scarcity (500 spots remaining)"],
+    "correct_action": "report",
+    "explanation": "Instagram verification is applied for through your account Settings > Account > Request Verification. They never send unsolicited DMs offering badges. This is a credential-stealing scam."
+  },
+  {
+    "id": 4,
+    "platform": "sms",
+    "role_target": "any",
+    "message_content": "KRA NOTICE: You have a pending tax refund of KES 15,450. To claim your refund, verify your KRA PIN and bank details at: https://kra-refund.xyz/claim\n\nRef: KRA/2024/REF/08821. Expires: 72hrs.",
+    "sender_name": "KRA",
+    "sender_address": "KRA-INFO",
+    "red_flags": ["Unexpected refund offer via SMS", "Suspicious domain (.xyz is not KRA's official domain)", "Requests sensitive bank details via link"],
+    "correct_action": "ignore",
+    "explanation": "Kenya Revenue Authority communicates via the iTax portal (itax.kra.go.ke) or official email. They never send SMS links requesting personal or banking information. Any refund would appear in your iTax account."
+  },
+  {
+    "id": 5,
+    "platform": "email",
+    "role_target": "content_creator",
+    "message_content": "From: Brand Partnerships <sponsors@brand-deals.co>\nSubject: $5,000 Sponsorship Opportunity - Action Required\n\nHello Creator,\n\nWe represent a major brand that loves your content. We'd like to offer you a $5,000 sponsorship deal.\n\nTo proceed, please click the link below to sign the contract and submit your banking details for payment:\nhttps://brand-deals.co/contract/sign\n\nThis offer expires in 48 hours.\n\nBrand Partnerships Team",
+    "sender_name": "Brand Deals",
+    "sender_address": "sponsors@brand-deals.co",
+    "red_flags": ["No mention of specific brand name", "Requests banking details before any negotiation", "Unprofessional domain for a major brand"],
+    "correct_action": "verify_elsewhere",
+    "explanation": "Real sponsorships involve direct contact, video calls, and contracts reviewed by both parties before any payment details are shared. Never provide bank details through an unsolicited link. Contact the brand directly through their official website."
+  }
+]
