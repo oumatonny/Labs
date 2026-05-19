@@ -10,6 +10,12 @@ st.set_page_config(
 
 # ── Session state defaults ────────────────────────────────────────────────────
 _DEFAULTS = {
+    # ── Account / auth ──────────────────────────────────────────────────────
+    "logged_in":   False,   # True once the user passes the login screen
+    "email":       "",      # canonical (lower-cased) email address
+    "account":     None,    # full account dict loaded from accounts.json
+    "current_attempt_id": None,  # attempt_id written after lab completion
+    # ── Profile / progress ──────────────────────────────────────────────────
     "user_profile": {},
     "lab_score": None,
     "completed_lab": False,
@@ -74,10 +80,11 @@ with st.sidebar:
     )
 
     st.divider()
-    # Live progress snapshot
-    _prof = st.session_state.user_profile
-    if _prof.get("name"):
-        st.markdown(f"**👤 {_prof['name']}**")
+    # ── Live session snapshot ─────────────────────────────────────────────────
+    if st.session_state.logged_in:
+        _prof = st.session_state.user_profile
+        st.markdown(f"**👤 {_prof.get('name', '—')}**")
+        st.caption(f"📧 {st.session_state.email}")
         st.markdown(f"🎭 {_prof.get('role', '—')}")
         if st.session_state.survey_completed:
             st.success("✅ Survey done", icon=None)
@@ -87,6 +94,13 @@ with st.sidebar:
             _s = st.session_state.lab_score
             _clr = "🟢" if _s >= 80 else "🔴"
             st.markdown(f"{_clr} Lab score: **{_s}/100**")
+        st.divider()
+        if st.button("🚪 Logout", key="_logout_btn"):
+            for _k in list(st.session_state.keys()):
+                del st.session_state[_k]
+            st.rerun()
+    else:
+        st.info("Login on the **Home** page to begin.")
 
 # ── Multi-page navigation ─────────────────────────────────────────────────────
 pg = st.navigation([

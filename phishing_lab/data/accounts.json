@@ -1,0 +1,29 @@
+{
+  "test@example.com": {
+    "user_id": "a16e3ec0",
+    "name": "Test User",
+    "email": "test@example.com",
+    "role": "",
+    "platform": "",
+    "tech_level": "",
+    "created_at": "2026-05-19 21:59:10",
+    "last_login": "2026-05-19 21:59:10",
+    "attempts": [
+      {
+        "attempt_id": 1,
+        "date": "2026-05-19 21:59:10",
+        "score": 85,
+        "passed": true,
+        "answers": [
+          {
+            "chosen": "report",
+            "is_correct": true,
+            "points": 20
+          }
+        ],
+        "certificate_downloaded": false
+      }
+    ],
+    "best_score": 85
+  }
+}

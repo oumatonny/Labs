@@ -1,174 +1,198 @@
-import sys
-import os
+import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import streamlit as st
 import pandas as pd
 from datetime import datetime
 from utils.certificate_generator import generate_certificate
-from utils.scorer import load_all_progress, mark_certificate_downloaded
+from utils.scorer    import load_all_progress, mark_certificate_downloaded
+from utils.accounts  import get_account, mark_cert_downloaded, all_accounts
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Guards
-# ─────────────────────────────────────────────────────────────────────────────
+# ── Auth guard ────────────────────────────────────────────────────────────────
 st.title("🏆 Results & Certificate")
 st.divider()
 
-prof = st.session_state.user_profile
-if not prof.get("name"):
-    st.warning("⚠️ Please complete the **Survey** first.")
-    if st.button("Go to Survey →", type="primary"):
-        st.switch_page("pages/01_survey.py")
+if not st.session_state.get("logged_in"):
+    st.warning("⚠️ Please login first.")
+    if st.button("Go to Login →", type="primary"):
+        st.switch_page("pages/00_home.py")
     st.stop()
 
-if not st.session_state.completed_lab or st.session_state.lab_score is None:
-    st.warning("⚠️ Please complete the **Phishing Lab** first to see your results.")
+# ── Load latest account data ──────────────────────────────────────────────────
+_acc = get_account(st.session_state.email) or st.session_state.get("account") or {}
+st.session_state.account = _acc
+prof     = st.session_state.user_profile
+attempts = _acc.get("attempts", [])
+best     = _acc.get("best_score")
+
+# ── No attempts yet ───────────────────────────────────────────────────────────
+if not attempts:
+    st.warning("⚠️ You haven't completed the **Phishing Lab** yet.")
     c1, c2 = st.columns(2)
     with c1:
-        if st.button("Go to Flashcards →"):
+        if st.button("🃏 Go to Flashcards", width="stretch"):
             st.switch_page("pages/02_flashcards.py")
     with c2:
-        if st.button("Go to Lab →", type="primary"):
+        if st.button("🔬 Go to Lab", type="primary", width="stretch"):
             st.switch_page("pages/03_lab.py")
     st.stop()
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Score section
+# Summary stats
 # ─────────────────────────────────────────────────────────────────────────────
-score = st.session_state.lab_score or 0
-passed = score >= 80
-pct = score  # already out of 100
+st.markdown(f"### Results for **{prof.get('name', 'Participant')}**")
+st.caption(f"📧 {st.session_state.email}  ·  🎭 {prof.get('role','—')}  ·  📱 {prof.get('platform','—')}")
 
-# Summary row
+passed_list = [a for a in attempts if a.get("passed")]
 m1, m2, m3, m4 = st.columns(4)
-m1.metric("Your Score",      f"{score}/100")
-m2.metric("Percentage",      f"{pct}%")
-m3.metric("Status",          "PASSED ✅" if passed else "FAILED ❌")
-m4.metric("Pass Threshold",  "80%")
-
-st.markdown("")
-st.progress(score / 100, text=f"**{score}/100**")
-st.markdown("")
-
-if passed:
-    st.success(f"""
-### 🎉 Congratulations, {prof.get('name', 'Participant')}!
-
-You passed the Phishing Awareness Lab with a score of **{score}/100** ({pct}%).
-You have demonstrated strong cybersecurity awareness. Download your certificate below.
-""")
-else:
-    st.error(f"""
-### 📚 Keep Practising!
-
-You scored **{score}/100** ({pct}%). The passing threshold is **80%**.
-Review the flashcards and retake the lab — you can do it!
-""")
-    c1, c2 = st.columns(2)
-    with c1:
-        if st.button("🃏 Review Flashcards", width='stretch'):
-            st.switch_page("pages/02_flashcards.py")
-    with c2:
-        if st.button("🔄 Retake Lab", type="primary", width='stretch'):
-            st.session_state.lab_state = "init"
-            st.session_state.lab_scenarios = None
-            st.session_state.lab_current = 0
-            st.session_state.lab_score = 0
-            st.session_state.lab_answers = []
-            st.session_state.lab_feedback_data = None
-            st.session_state.lab_csv_saved = False
-            st.switch_page("pages/03_lab.py")
+m1.metric("Total Attempts",  len(attempts))
+m2.metric("Best Score",      f"{best}/100" if best is not None else "—")
+m3.metric("Times Passed",    len(passed_list))
+m4.metric("Pass Rate",       f"{int(len(passed_list)/len(attempts)*100)}%" if attempts else "—")
 
 st.divider()
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Answer breakdown
+# Current session result (highlighted at top if fresh)
 # ─────────────────────────────────────────────────────────────────────────────
-with st.expander("📊 Detailed Answer Breakdown", expanded=True):
-    answers = st.session_state.lab_answers or []
-    if answers:
-        rows = []
-        for i, ans in enumerate(answers):
-            rows.append({
-                "Scenario": i + 1,
-                "Platform": ans.get("platform", "—").title(),
-                "Your Action": ans.get("chosen", "—"),
-                "Correct Action": ans.get("correct_action", "—"),
-                "Points": ans.get("points", 0),
-                "Result": "✅ Correct" if ans.get("is_correct") else "❌ Wrong",
-            })
-        df_ans = pd.DataFrame(rows)
-        st.dataframe(df_ans, width='stretch', hide_index=True)
-    else:
-        st.info("No answer data available.")
+_cur_id = st.session_state.get("current_attempt_id")
+if _cur_id and st.session_state.get("completed_lab"):
+    cur = next((a for a in attempts if a["attempt_id"] == _cur_id), None)
+    if cur:
+        score  = cur["score"]
+        passed = cur["passed"]
+        st.markdown("### 🎯 Latest Result")
+        st.progress(score / 100, text=f"**{score}/100**")
 
-st.divider()
+        if passed:
+            if passed:
+                st.balloons()
+            st.success(f"🎉 **Congratulations!** You scored **{score}/100** and passed the lab.")
+        else:
+            st.error(f"📚 You scored **{score}/100**. Score 80+ to pass. Review flashcards and try again!")
+            c1, c2 = st.columns(2)
+            with c1:
+                if st.button("🃏 Review Flashcards", width="stretch"):
+                    st.switch_page("pages/02_flashcards.py")
+            with c2:
+                if st.button("🔄 Retake Lab", type="primary", width="stretch"):
+                    st.session_state.lab_state     = "init"
+                    st.session_state.lab_scenarios  = None
+                    st.session_state.lab_current   = 0
+                    st.session_state.lab_score     = 0
+                    st.session_state.lab_answers   = []
+                    st.session_state.lab_feedback_data = None
+                    st.session_state.lab_csv_saved = False
+                    st.switch_page("pages/03_lab.py")
+
+        # Answer breakdown for current attempt
+        with st.expander("📊 Detailed Answer Breakdown", expanded=True):
+            answers = cur.get("answers", [])
+            if answers:
+                rows = [{
+                    "Scenario":       i + 1,
+                    "Platform":       a.get("platform", "—").title(),
+                    "Your Action":    a.get("chosen", "—"),
+                    "Correct Action": a.get("correct_action", "—"),
+                    "Points":         a.get("points", 0),
+                    "Result":         "✅ Correct" if a.get("is_correct") else "❌ Wrong",
+                } for i, a in enumerate(answers)]
+                st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+
+        st.divider()
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Certificate
+# All attempts with per-attempt certificate download
 # ─────────────────────────────────────────────────────────────────────────────
-st.markdown("## 📜 Your Certificate")
+st.markdown("### 📜 All Attempts")
 
-if passed:
-    # Certificate preview
+for att in reversed(attempts):
+    att_id   = att["attempt_id"]
+    score    = att["score"]
+    passed   = att["passed"]
+    att_date = att["date"]
+    cert_dl  = att.get("certificate_downloaded", False)
+
+    border = "#22c55e" if passed else "#ef4444"
+    bg     = "rgba(34,197,94,0.07)" if passed else "rgba(239,68,68,0.07)"
+    badge  = "✅ PASSED" if passed else "❌ FAILED"
+
     st.markdown(f"""
-<div style="background:linear-gradient(150deg,#013140,#026281);border:3px solid #CC9F66;border-radius:16px;padding:44px 40px;text-align:center;max-width:600px;margin:auto;box-shadow:0 10px 40px rgba(1,49,64,0.6);">
-  <div style="color:#CC9F66;font-size:0.8em;font-weight:700;letter-spacing:4px;margin-bottom:6px;">CERTIFICATE OF COMPLETION</div>
-  <div style="color:rgba(255,255,255,0.7);font-size:0.95em;margin-bottom:24px;">Phishing Awareness Training Program</div>
-  <div style="color:rgba(255,255,255,0.55);font-size:0.9em;margin-bottom:10px;">This certifies that</div>
-  <div style="color:#FFFFFF;font-size:2em;font-weight:700;margin:10px 0 4px;">{prof.get('name','Participant')}</div>
-  <div style="border-bottom:2px solid #CC9F66;width:55%;margin:0 auto 22px;"></div>
-  <div style="color:rgba(255,255,255,0.8);font-size:0.95em;line-height:1.7;margin-bottom:20px;">
-    has successfully completed the Phishing Awareness Lab<br>and demonstrated knowledge of cybersecurity best practices.
+<div style="background:{bg};border:1px solid {border};border-radius:10px;padding:14px 20px;margin-bottom:6px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+    <div>
+      <span style="color:#CC9F66;font-weight:700;">Attempt #{att_id}</span>
+      <span style="color:rgba(255,255,255,0.45);font-size:0.85em;margin-left:12px;">{att_date}</span>
+    </div>
+    <div style="font-size:1.05em;">
+      <strong style="color:#FFFFFF;">{score}/100</strong>
+      <span style="margin-left:10px;">{badge}</span>
+    </div>
   </div>
-  <div style="display:inline-block;background:rgba(204,159,102,0.15);border:2px solid #CC9F66;border-radius:8px;padding:10px 28px;color:#CC9F66;font-weight:700;font-size:1.15em;margin-bottom:16px;">Score: {score}/100</div>
-  <div style="color:rgba(255,255,255,0.45);font-size:0.85em;margin-bottom:16px;">{datetime.now().strftime("%B %d, %Y")}</div>
-  <div style="color:#CC9F66;font-weight:700;font-size:1em;">Newslight Kenya</div>
-  <div style="color:rgba(255,255,255,0.4);font-size:0.8em;">Cybersecurity Awareness Initiative</div>
 </div>
 """, unsafe_allow_html=True)
 
-    st.markdown("")
+    col_exp, col_cert = st.columns([3, 2])
 
-    # Generate and offer PDF download
-    try:
-        pdf_bytes = generate_certificate(
-            user_name=prof.get("name", "Participant"),
-            score=score,
-            date=datetime.now().strftime("%B %d, %Y"),
-        )
-        safe_name = prof.get("name", "participant").replace(" ", "_")
-        clicked = st.download_button(
-            label="📄 Download PDF Certificate",
-            data=pdf_bytes,
-            file_name=f"phishing_certificate_{safe_name}.pdf",
-            mime="application/pdf",
-            type="primary",
-            width='stretch',
-        )
-        if clicked:
+    with col_exp:
+        with st.expander(f"Show answer breakdown — Attempt #{att_id}"):
+            _ans = att.get("answers", [])
+            if _ans:
+                rows = [{
+                    "#":             i + 1,
+                    "Platform":      a.get("platform", "—").title(),
+                    "Your Action":   a.get("chosen", "—"),
+                    "Correct":       a.get("correct_action", "—"),
+                    "Pts":           a.get("points", 0),
+                    "Result":        "✅" if a.get("is_correct") else "❌",
+                } for i, a in enumerate(_ans)]
+                st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
+            else:
+                st.caption("No detailed breakdown available.")
+
+    with col_cert:
+        if passed:
             try:
-                mark_certificate_downloaded(prof.get("user_id", ""))
-                st.session_state.certificate_downloaded = True
-            except Exception:
-                pass
-    except Exception as e:
-        st.error(f"Certificate generation failed: {e}")
-        st.info("Please ensure reportlab is installed: `pip install reportlab`")
+                pdf = generate_certificate(
+                    user_name=prof.get("name", "Participant"),
+                    score=score,
+                    date=att_date[:10],
+                )
+                safe = prof.get("name", "participant").replace(" ", "_")
+                label = (f"📄 Download Certificate #{att_id}" +
+                         (" ✓ downloaded" if cert_dl else ""))
+                dl_clicked = st.download_button(
+                    label=label,
+                    data=pdf,
+                    file_name=f"certificate_{safe}_attempt{att_id}.pdf",
+                    mime="application/pdf",
+                    type="primary",
+                    key=f"res_dl_{att_id}",
+                    width="stretch",
+                )
+                if dl_clicked:
+                    mark_cert_downloaded(st.session_state.email, att_id)
+                    try:
+                        mark_certificate_downloaded(prof.get("user_id", ""))
+                    except Exception:
+                        pass
+            except Exception as ex:
+                st.warning(f"Certificate error: {ex}")
+        else:
+            st.info("Score 80+ to unlock certificate.", icon="🔒")
 
-else:
-    st.info("🔒 Complete the lab with a score of **80 or higher** to unlock your certificate.")
+    st.markdown("")
 
 st.divider()
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Admin panel (password-protected)
+# Admin panel
 # ─────────────────────────────────────────────────────────────────────────────
 st.markdown("## 🔐 Organisation Admin Panel")
 
 if not st.session_state.get("admin_authenticated"):
     with st.form("admin_login"):
-        pwd = st.text_input("Admin Password", type="password", placeholder="Enter admin password")
+        pwd    = st.text_input("Admin Password", type="password")
         submit = st.form_submit_button("Login")
     if submit:
         if pwd == "admin123":
@@ -178,49 +202,64 @@ if not st.session_state.get("admin_authenticated"):
             st.error("Incorrect password.")
 else:
     st.success("✅ Admin access granted.")
-    if st.button("🔓 Logout", key="admin_logout"):
+    if st.button("🔓 Logout Admin", key="admin_logout"):
         st.session_state.admin_authenticated = False
         st.rerun()
 
     st.markdown("### 📈 Organisation Statistics")
     try:
-        df = load_all_progress()
-        if df.empty:
-            st.info("No participant data yet.")
+        accs = all_accounts()
+        if not accs:
+            st.info("No accounts registered yet.")
         else:
-            # Compute stats
-            total = len(df)
-            df_scored = df[df["lab_score"].notna() & (df["lab_score"] != "")]
-            n_completed = len(df_scored)
+            total     = len(accs)
+            completed = [a for a in accs if a.get("attempts")]
+            all_atts  = [att for a in accs for att in a.get("attempts", [])]
+            passed_a  = [att for att in all_atts if att.get("passed")]
+            avg_score = (sum(att["score"] for att in all_atts) / len(all_atts)) if all_atts else 0
+            pass_rate = (len(passed_a) / len(all_atts) * 100) if all_atts else 0
 
-            if n_completed > 0:
-                df_scored = df_scored.copy()
-                df_scored["lab_score"] = pd.to_numeric(df_scored["lab_score"], errors="coerce")
-                avg_score = df_scored["lab_score"].mean()
-                passed_mask = df_scored["lab_score"] >= 80
-                pass_rate = (passed_mask.sum() / n_completed) * 100
-            else:
-                avg_score = 0.0
-                pass_rate = 0.0
+            s1, s2, s3, s4 = st.columns(4)
+            s1.metric("Registered Users",   total)
+            s2.metric("Completed Lab",       len(completed))
+            s3.metric("Avg Score",           f"{avg_score:.1f}/100")
+            s4.metric("Overall Pass Rate",   f"{pass_rate:.1f}%")
 
-            a1, a2, a3, a4 = st.columns(4)
-            a1.metric("Total Registered",  total)
-            a2.metric("Completed Lab",     n_completed)
-            a3.metric("Average Score",     f"{avg_score:.1f}/100" if n_completed else "—")
-            a4.metric("Pass Rate",         f"{pass_rate:.1f}%" if n_completed else "—")
+            st.markdown("### 👥 All Accounts")
+            rows = []
+            for a in accs:
+                best_a = a.get("best_score")
+                rows.append({
+                    "Name":          a.get("name", ""),
+                    "Email":         a.get("email", ""),
+                    "Role":          a.get("role", "—"),
+                    "Platform":      a.get("platform", "—"),
+                    "Attempts":      len(a.get("attempts", [])),
+                    "Best Score":    f"{best_a}/100" if best_a is not None else "—",
+                    "Last Login":    a.get("last_login", "—"),
+                })
+            st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
 
-            st.markdown("")
-            st.markdown("### 📋 Participant Records")
-            st.dataframe(df, width='stretch', hide_index=True)
+            # Legacy CSV download
+            try:
+                df_csv = load_all_progress()
+                st.download_button(
+                    "📊 Download Legacy CSV",
+                    df_csv.to_csv(index=False).encode(),
+                    "phishing_lab_results.csv",
+                    "text/csv",
+                )
+            except Exception:
+                pass
 
-            # CSV download
-            csv_data = df.to_csv(index=False).encode("utf-8")
+            # Accounts JSON download
+            import json
+            from utils.accounts import _load as _load_acc
             st.download_button(
-                label="📊 Download Full CSV",
-                data=csv_data,
-                file_name="phishing_lab_results.csv",
-                mime="text/csv",
-                width='stretch',
+                "📦 Download accounts.json",
+                json.dumps(_load_acc(), indent=2, ensure_ascii=False).encode(),
+                "accounts.json",
+                "application/json",
             )
     except Exception as e:
         st.error(f"Could not load data: {e}")

@@ -4,7 +4,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import streamlit as st
 from utils.scenario_generator import get_scenarios_for_session
-from utils.scorer import update_score_in_csv
+from utils.scorer   import update_score_in_csv
+from utils.accounts import save_attempt as accounts_save_attempt
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Simulator renderers — each returns HTML string
@@ -277,8 +278,15 @@ st.title("🔬 Phishing Lab")
 st.markdown("Face 5 realistic phishing scenarios. Choose the correct action for each. **20 points per correct answer — 100 max.**")
 st.divider()
 
+# Guard: require login
+if not st.session_state.get("logged_in"):
+    st.warning("⚠️ Please **login** first.")
+    if st.button("Go to Login →", type="primary"):
+        st.switch_page("pages/00_home.py")
+    st.stop()
+
 # Guard: require survey
-if not st.session_state.user_profile.get("name"):
+if not st.session_state.user_profile.get("role"):
     st.warning("⚠️ Please complete the **Survey** first so we can personalise your scenarios.")
     if st.button("Go to Survey →", type="primary"):
         st.switch_page("pages/01_survey.py")
@@ -497,14 +505,23 @@ You scored **{final_score} / 100** ({final_score}%)
             icon = "✅" if ans.get("is_correct") else "❌"
             st.markdown(f"{icon} **Scenario {i+1}** ({ans.get('platform','').title()}) — You chose: `{ans['chosen']}` | Correct action: `{ans.get('correct_action','—')}` | Points: **{ans['points']}**")
 
-    # Save to CSV once
+    # Persist results once per completion
     if not st.session_state.lab_csv_saved:
         try:
             prof = st.session_state.user_profile
+            # Legacy CSV
             update_score_in_csv(prof.get("user_id", ""), final_score, passed)
-            st.session_state.lab_csv_saved = True
-            st.session_state.completed_lab = True
-            st.session_state.lab_score = final_score
+            # Accounts JSON (primary store)
+            attempt_id = accounts_save_attempt(
+                st.session_state.email,
+                final_score,
+                passed,
+                st.session_state.lab_answers or [],
+            )
+            st.session_state.current_attempt_id = attempt_id
+            st.session_state.lab_csv_saved  = True
+            st.session_state.completed_lab  = True
+            st.session_state.lab_score      = final_score
         except Exception:
             pass
 
