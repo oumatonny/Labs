@@ -70,19 +70,71 @@ Rules:
             if content:
                 full_content += content
 
-        # Extract JSON array from response
-        full_content = full_content.strip()
-        start = full_content.find("[")
-        end = full_content.rfind("]") + 1
-        if start != -1 and end > start:
-            json_str = full_content[start:end]
-            scenarios = json.loads(json_str)
-            if isinstance(scenarios, list) and len(scenarios) > 0:
-                for i, s in enumerate(scenarios):
-                    s["id"] = i + 1
-                return scenarios
+        scenarios = _extract_json_array(full_content)
+        if scenarios:
+            for i, s in enumerate(scenarios):
+                s["id"] = i + 1
+            return scenarios
 
     except Exception as exc:
         print(f"[NVIDIA API] Error: {exc}")
+
+    return []
+
+
+def _extract_json_array(text: str) -> list:
+    """
+    Robustly extract the first complete JSON array from a model response.
+    Uses bracket counting so trailing explanation text or extra whitespace
+    after the closing ] never causes a parse error.
+    """
+    # Strip markdown code fences the model sometimes wraps output in
+    text = text.strip()
+    if "```" in text:
+        import re
+        text = re.sub(r"```(?:json)?\s*", "", text).strip()
+
+    # Try a direct parse first (handles clean responses)
+    try:
+        result = json.loads(text)
+        if isinstance(result, list):
+            return result
+    except json.JSONDecodeError:
+        pass
+
+    # Find the first '[' and walk forward counting bracket depth
+    start = text.find("[")
+    if start == -1:
+        return []
+
+    depth = 0
+    in_string = False
+    escape_next = False
+
+    for i, ch in enumerate(text[start:], start):
+        if escape_next:
+            escape_next = False
+            continue
+        if ch == "\\" and in_string:
+            escape_next = True
+            continue
+        if ch == '"':
+            in_string = not in_string
+            continue
+        if in_string:
+            continue
+        if ch == "[":
+            depth += 1
+        elif ch == "]":
+            depth -= 1
+            if depth == 0:
+                # Found the matching close bracket — parse only this slice
+                try:
+                    result = json.loads(text[start : i + 1])
+                    if isinstance(result, list):
+                        return result
+                except json.JSONDecodeError:
+                    pass
+                break  # Malformed even after isolation — give up
 
     return []

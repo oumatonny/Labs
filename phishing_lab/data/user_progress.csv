@@ -1,3 +1,4 @@
 timestamp,user_id,user_name,role,platform,tech_level,lab_score,passed,date_completed,certificate_downloaded
 2026-05-19 20:22:44,128ebddf,Jane,Content Creator,Email,Beginner,,,,False
 2026-05-19 20:52:00,687cbacd,Caleb Ouma,Senior Citizen,Facebook,Intermediate,,,,False
+2026-05-19 21:29:45,a2d76a8c,John Ken,Senior Citizen,SMS,Intermediate,,,,False
