@@ -30,7 +30,7 @@ if step == 1:
     name = st.text_input("Full Name", placeholder="e.g. Jane Mwangi", key="s_name")
 
     st.markdown("")
-    if st.button("Next →", type="primary", disabled=not name.strip(), use_container_width=False):
+    if st.button("Next →", type="primary", disabled=not name.strip(), width='content'):
         if "user_profile" not in st.session_state:
             st.session_state.user_profile = {}
         st.session_state.user_profile["name"] = name.strip()

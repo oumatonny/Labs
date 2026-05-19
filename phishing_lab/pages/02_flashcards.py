@@ -119,30 +119,30 @@ st.markdown(f"""
 b1, b2, b3, b4 = st.columns(4)
 
 with b1:
-    if st.button("⬅️ Previous", disabled=(idx == 0), use_container_width=True):
+    if st.button("⬅️ Previous", disabled=(idx == 0), width='stretch'):
         st.session_state.card_index = idx - 1
         st.session_state.card_flipped = False
         st.rerun()
 
 with b2:
     flip_label = "🔄 Show Question" if flipped else "🔄 Flip Card"
-    if st.button(flip_label, use_container_width=True, type="primary"):
+    if st.button(flip_label, width='stretch', type="primary"):
         st.session_state.card_flipped = not flipped
         st.rerun()
 
 with b3:
     if is_learned:
-        if st.button("↩️ Unmark", use_container_width=True):
+        if st.button("↩️ Unmark", width='stretch'):
             st.session_state.flashcards_learned.discard(idx)
             st.rerun()
     else:
-        if st.button("✅ Mark Learned", use_container_width=True):
+        if st.button("✅ Mark Learned", width='stretch'):
             st.session_state.flashcards_learned.add(idx)
             st.session_state.card_flipped = False
             st.rerun()
 
 with b4:
-    if st.button("Next ➡️", disabled=(idx == len(CARDS) - 1), use_container_width=True):
+    if st.button("Next ➡️", disabled=(idx == len(CARDS) - 1), width='stretch'):
         st.session_state.card_index = idx + 1
         st.session_state.card_flipped = False
         st.rerun()
@@ -164,7 +164,7 @@ st.divider()
 # ── Proceed to lab ────────────────────────────────────────────────────────────
 if n_learned >= 5:
     st.success(f"🎉 Great work! You've learned {n_learned}/10 cards. You can now enter the Phishing Lab.")
-    if st.button("🔬 Proceed to Phishing Lab →", type="primary", use_container_width=True):
+    if st.button("🔬 Proceed to Phishing Lab →", type="primary", width='stretch'):
         st.switch_page("pages/03_lab.py")
 else:
     remaining = 5 - n_learned

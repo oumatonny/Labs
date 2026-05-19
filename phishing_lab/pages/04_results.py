@@ -66,10 +66,10 @@ Review the flashcards and retake the lab — you can do it!
 """)
     c1, c2 = st.columns(2)
     with c1:
-        if st.button("🃏 Review Flashcards", use_container_width=True):
+        if st.button("🃏 Review Flashcards", width='stretch'):
             st.switch_page("pages/02_flashcards.py")
     with c2:
-        if st.button("🔄 Retake Lab", type="primary", use_container_width=True):
+        if st.button("🔄 Retake Lab", type="primary", width='stretch'):
             st.session_state.lab_state = "init"
             st.session_state.lab_scenarios = None
             st.session_state.lab_current = 0
@@ -98,7 +98,7 @@ with st.expander("📊 Detailed Answer Breakdown", expanded=True):
                 "Result": "✅ Correct" if ans.get("is_correct") else "❌ Wrong",
             })
         df_ans = pd.DataFrame(rows)
-        st.dataframe(df_ans, use_container_width=True, hide_index=True)
+        st.dataframe(df_ans, width='stretch', hide_index=True)
     else:
         st.info("No answer data available.")
 
@@ -144,7 +144,7 @@ if passed:
             file_name=f"phishing_certificate_{safe_name}.pdf",
             mime="application/pdf",
             type="primary",
-            use_container_width=True,
+            width='stretch',
         )
         if clicked:
             try:
@@ -211,7 +211,7 @@ else:
 
             st.markdown("")
             st.markdown("### 📋 Participant Records")
-            st.dataframe(df, use_container_width=True, hide_index=True)
+            st.dataframe(df, width='stretch', hide_index=True)
 
             # CSV download
             csv_data = df.to_csv(index=False).encode("utf-8")
@@ -220,7 +220,7 @@ else:
                 data=csv_data,
                 file_name="phishing_lab_results.csv",
                 mime="text/csv",
-                use_container_width=True,
+                width='stretch',
             )
     except Exception as e:
         st.error(f"Could not load data: {e}")

@@ -265,7 +265,7 @@ def _render_action_buttons(scenario: dict, current_idx: int):
         with col:
             btn_type = "primary" if "⚠️" in label else "secondary"
             if st.button(label, key=f"act_{current_idx}_{i}",
-                         use_container_width=True, type=btn_type):
+                         width='stretch', type=btn_type):
                 return action_id
     return None
 
@@ -304,7 +304,7 @@ Read carefully and choose the best action. You cannot go back once you confirm.
 """)
     col_a, col_b, col_c = st.columns([2, 1, 2])
     with col_b:
-        if st.button("🚀 Start Lab", type="primary", use_container_width=True):
+        if st.button("🚀 Start Lab", type="primary", width='stretch'):
             st.session_state.lab_state = "loading"
             st.session_state.lab_current = 0
             st.session_state.lab_score = 0
@@ -461,7 +461,7 @@ elif state == "feedback":
     is_last = (idx >= 4)
     next_label = "🏆 See My Results →" if is_last else f"Next Scenario ({idx + 2}/5) →"
 
-    if st.button(next_label, type="primary", use_container_width=True):
+    if st.button(next_label, type="primary", width='stretch'):
         if is_last:
             st.session_state.lab_state = "completed"
         else:
@@ -511,7 +511,7 @@ You scored **{final_score} / 100** ({final_score}%)
     st.markdown("")
     rc1, rc2 = st.columns(2)
     with rc1:
-        if st.button("🔄 Retake Lab", use_container_width=True):
+        if st.button("🔄 Retake Lab", width='stretch'):
             st.session_state.lab_state = "init"
             st.session_state.lab_scenarios = None
             st.session_state.lab_current = 0
@@ -521,5 +521,5 @@ You scored **{final_score} / 100** ({final_score}%)
             st.session_state.lab_csv_saved = False
             st.rerun()
     with rc2:
-        if st.button("🏆 View Full Results →", type="primary", use_container_width=True):
+        if st.button("🏆 View Full Results →", type="primary", width='stretch'):
             st.switch_page("pages/04_results.py")

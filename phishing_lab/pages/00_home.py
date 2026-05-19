@@ -94,14 +94,14 @@ if _prof.get("name"):
     st.success(f"Welcome back, **{_prof['name']}**! Pick up where you left off.")
     bc1, bc2, bc3 = st.columns(3)
     with bc1:
-        if st.button("📋 Go to Survey", use_container_width=True):
+        if st.button("📋 Go to Survey", width='stretch'):
             st.switch_page("pages/01_survey.py")
     with bc2:
-        if st.button("🃏 Go to Flashcards", use_container_width=True):
+        if st.button("🃏 Go to Flashcards", width='stretch'):
             st.switch_page("pages/02_flashcards.py")
     with bc3:
-        if st.button("🔬 Go to Lab", type="primary", use_container_width=True):
+        if st.button("🔬 Go to Lab", type="primary", width='stretch'):
             st.switch_page("pages/03_lab.py")
 else:
-    if st.button("🚀 Start Training Now →", type="primary", use_container_width=True):
+    if st.button("🚀 Start Training Now →", type="primary", width='stretch'):
         st.switch_page("pages/01_survey.py")
