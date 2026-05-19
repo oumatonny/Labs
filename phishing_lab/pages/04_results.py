@@ -6,7 +6,7 @@ import pandas as pd
 from datetime import datetime
 from utils.certificate_generator import generate_certificate
 from utils.scorer    import load_all_progress, mark_certificate_downloaded
-from utils.accounts  import get_account, mark_cert_downloaded, all_accounts
+from utils.accounts  import get_account, mark_cert_downloaded, all_accounts, save_attempt
 
 # ── Auth guard ────────────────────────────────────────────────────────────────
 st.title("🏆 Results & Certificate")
@@ -22,10 +22,52 @@ if not st.session_state.get("logged_in"):
 _acc = get_account(st.session_state.email) or st.session_state.get("account") or {}
 st.session_state.account = _acc
 prof     = st.session_state.user_profile
-attempts = _acc.get("attempts", [])
+attempts = list(_acc.get("attempts", []))   # copy so we can extend safely
 best     = _acc.get("best_score")
 
-# ── No attempts yet ───────────────────────────────────────────────────────────
+# ── Session-state fallback ─────────────────────────────────────────────────────
+# If accounts.json has no record (save failed, or pre-login session) but the lab
+# was completed this session, synthesise a display-only attempt from session state.
+_session_score = st.session_state.get("lab_score")
+_session_done  = (
+    st.session_state.get("completed_lab") and
+    _session_score is not None and
+    st.session_state.get("lab_answers")
+)
+
+if not attempts and _session_done:
+    _synth = {
+        "attempt_id":             1,
+        "date":                   datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "score":                  _session_score,
+        "passed":                 _session_score >= 80,
+        "answers":                st.session_state.lab_answers,
+        "certificate_downloaded": False,
+        "_session_only":          True,   # marker — not persisted yet
+    }
+    attempts = [_synth]
+    best     = _session_score
+
+    # Try one more time to persist it now
+    if st.session_state.get("email"):
+        try:
+            _aid = save_attempt(
+                st.session_state.email,
+                _session_score,
+                _session_score >= 80,
+                st.session_state.lab_answers,
+            )
+            if _aid:
+                st.session_state.current_attempt_id = _aid
+                # Reload from disk so subsequent rerenders are correct
+                _acc = get_account(st.session_state.email) or {}
+                st.session_state.account = _acc
+                attempts = list(_acc.get("attempts", []))
+                best     = _acc.get("best_score")
+        except Exception:
+            pass
+
+# ── No attempts and nothing in session ────────────────────────────────────────
 if not attempts:
     st.warning("⚠️ You haven't completed the **Phishing Lab** yet.")
     c1, c2 = st.columns(2)

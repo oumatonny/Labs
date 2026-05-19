@@ -507,10 +507,16 @@ You scored **{final_score} / 100** ({final_score}%)
 
     # Persist results once per completion
     if not st.session_state.lab_csv_saved:
+        # Always mark session state first so results page can fall back to it
+        st.session_state.completed_lab = True
+        st.session_state.lab_score     = final_score
         try:
             prof = st.session_state.user_profile
             # Legacy CSV
             update_score_in_csv(prof.get("user_id", ""), final_score, passed)
+        except Exception:
+            pass
+        try:
             # Accounts JSON (primary store)
             attempt_id = accounts_save_attempt(
                 st.session_state.email,
@@ -519,11 +525,9 @@ You scored **{final_score} / 100** ({final_score}%)
                 st.session_state.lab_answers or [],
             )
             st.session_state.current_attempt_id = attempt_id
-            st.session_state.lab_csv_saved  = True
-            st.session_state.completed_lab  = True
-            st.session_state.lab_score      = final_score
-        except Exception:
-            pass
+        except Exception as _e:
+            st.session_state.current_attempt_id = None
+        st.session_state.lab_csv_saved = True
 
     st.markdown("")
     rc1, rc2 = st.columns(2)
